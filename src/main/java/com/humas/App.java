@@ -1,21 +1,25 @@
 package com.humas;
 
+import atlantafx.base.theme.PrimerLight;
+import com.humas.view.LoginView;
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        Label label = new Label("Sistem Humas - NetBeans JavaFX Ready!");
-        Scene scene = new Scene(new StackPane(label), 400, 200);
+        // 1. Terapkan Tema AtlantaFX secara Global
+        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+
+        // 2. Tampilkan Halaman Login
+        new LoginView().start(stage);
         
-        stage.setTitle("Aplikasi SIM Humas");
-        stage.setScene(scene);
-        stage.show();
+        String hashBaru = BCrypt.hashpw("123", BCrypt.gensalt());
+System.out.println("=== HASH BCRYPT JAVA ===");
+System.out.println(hashBaru);
+System.out.println("=======================");
     }
 
     public static void main(String[] args) {
