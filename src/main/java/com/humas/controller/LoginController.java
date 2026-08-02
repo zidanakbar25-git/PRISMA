@@ -48,45 +48,47 @@ public class LoginController {
     }
 
     private User authenticate(String username, String plainPassword) {
-    String sql = "SELECT id_user, nama, username, password, role FROM users WHERE username = ? AND status_aktif = 1";
+        String sql = "SELECT id, nama, username, password, role FROM users WHERE username = ? AND status_aktif = 1";
 
-    try (Connection conn = Database.getConnection()) {
-        if (conn == null) {
-            System.err.println("[ERROR] Koneksi database NULL!");
-            return null;
-        }
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                String hashedPasswordFromDB = rs.getString("password");
-                String roleFromDB = rs.getString("role");
-
-                System.out.println("[DEBUG] User ditemukan di DB: " + rs.getString("username"));
-                System.out.println("[DEBUG] Role di DB: " + roleFromDB);
-
-                // Verifikasi BCrypt
-                if (BCrypt.checkpw(plainPassword, hashedPasswordFromDB)) {
-                    System.out.println("[DEBUG] Password cocok!");
-                    return new User(
-                        rs.getInt("id_user"),
-                        rs.getString("nama"),
-                        rs.getString("username"),
-                        roleFromDB
-                    );
-                } else {
-                    System.err.println("[ERROR] Password TIDAK cocok dengan Hash BCrypt di DB!");
-                }
-            } else {
-                System.err.println("[ERROR] Username '" + username + "' tidak ditemukan atau status_aktif != 1");
+        try (Connection conn = Database.getConnection()) {
+            if (conn == null) {
+                System.err.println("[ERROR] Koneksi database NULL!");
+                return null;
             }
+
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, username);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    String hashedPasswordFromDB = rs.getString("password");
+                    String roleFromDB = rs.getString("role");
+
+                    // Normalisasi prefix hash BCrypt ($2y$ atau $2b$ dari PHP/Laravel ke $2a$ yang
+                    // didukung JBcrypt Java)
+                    if (hashedPasswordFromDB != null) {
+                        hashedPasswordFromDB = hashedPasswordFromDB.replace("$2y$", "$2a$").replace("$2b$", "$2a$");
+                    }
+
+                    // Verifikasi BCrypt
+                    if (BCrypt.checkpw(plainPassword, hashedPasswordFromDB)) {
+                        System.out.println("[DEBUG] Password cocok!");
+                        return new User(
+                                rs.getInt("id"),
+                                rs.getString("nama"),
+                                rs.getString("username"),
+                                roleFromDB);
+                    } else {
+                        System.err.println("[ERROR] Password TIDAK cocok dengan Hash BCrypt di DB!");
+                    }
+                } else {
+                    System.err.println("[ERROR] Username '" + username + "' tidak ditemukan atau status_aktif != 1");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Terjadi exception SQL / Database:");
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        System.err.println("[ERROR] Terjadi exception SQL / Database:");
-        e.printStackTrace();
+        return null;
     }
-    return null;
-}
 }

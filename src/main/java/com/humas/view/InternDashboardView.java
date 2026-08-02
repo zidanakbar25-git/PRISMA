@@ -25,6 +25,10 @@ public class InternDashboardView {
         Label lblDesc = new Label("Akses pemuatan draft narasi berita dan melihat daftar tugas harian Anda.");
         lblDesc.getStyleClass().add(Styles.TEXT_MUTED);
 
+        Button btnMediaSorter = new Button("📁 Sortir Media Lokal");
+        btnMediaSorter.getStyleClass().addAll(Styles.ACCENT);
+        btnMediaSorter.setOnAction(e -> new MediaSorterView().start(stage));
+
         Button btnLogout = new Button("Logout");
         btnLogout.getStyleClass().addAll(Styles.DANGER);
 
@@ -33,7 +37,7 @@ public class InternDashboardView {
             new LoginView().start(stage);
         });
 
-        VBox card = new VBox(15, lblTitle, lblWelcome, lblDesc, btnLogout);
+        VBox card = new VBox(15, lblTitle, lblWelcome, lblDesc, btnMediaSorter, btnLogout);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(30));
         card.getStyleClass().add(Styles.ELEVATED_1);
